@@ -1,0 +1,70 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+
+#  - name: Start systemd-resolved
+#    ansible.builtin.systemd:
+#      name: "{{ item }}"
+#      enabled: no
+#      state: started
+#    with_items:
+#      - systemd-resolved
+
+  - name: Download pre-compiled CoreDNS binaries
+    get_url:
+      url: https://github.com/coredns/coredns/releases/download/v1.9.1/coredns_1.9.1_linux_amd64.tgz
+      dest: /tmp/coredns.tgz
+
+  - name: Make sure target dir exists
+    ansible.builtin.file:
+      path: /opt/coredns
+      state: directory
+
+  - name: Extract CoreDNS to target dir
+    ansible.builtin.unarchive:
+      src: /tmp/coredns.tgz
+      dest: /opt/coredns
+
+  - name: Make sure configuration file exists
+    ansible.builtin.file:
+      path: /opt/coredns/Corefile
+      state: touch
+
+  - name: Copy over CoreDNS configuration file
+    blockinfile:
+      path: /opt/coredns/Corefile
+      marker: "# {mark} ANSIBLE MANAGED BLOCK"
+      block: |
+        # https://jmattheis.de/blog/setup-a-forwarding-dns-sinkhole-with-dns-over-tlshttps
+        # https://www.codevieillard.tech/blog/run-coredns-locally/
+        # https://coredns.io/plugins/log/
+        .:53 {
+          # log errors to standard out
+          errors
+          # log all requests
+          log . "{combined}"
+
+          # forwarding 
+          forward . dns://8.8.8.8
+        }
+
+        example.attack:53 {
+          # log errors to standard out
+          errors
+          # log all requests
+          log . "{combined}"
+
+          # forwarding 
+          forward . dns://192.168.0.20
+        }
+
+  
+#  - name: Disable / stop systemd-resolved
+#    ansible.builtin.systemd:
+#      name: "{{ item }}"
+#      enabled: no
+#      state: stopped
+#    with_items:
+#      - systemd-resolved

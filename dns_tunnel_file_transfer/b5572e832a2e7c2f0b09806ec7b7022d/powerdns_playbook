@@ -1,0 +1,52 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+
+  - name: Install all galaxy roles
+    shell: ansible-galaxy install powerdns.pdns_recursor --roles-path="/etc/ansible/roles"
+
+  - name: Installing PowerDNS
+    include_role:
+      name: powerdns.pdns_recursor
+
+    vars:
+      pdns_rec_config:
+        local-address: "192.168.0.10:53"
+        forward-zones:
+          - "example.attack=192.168.0.20:53"
+        forward-zones-recurse:
+          - ".=8.8.8.8"
+        trace: "yes"
+        loglevel: 5
+        logging-facility: 0
+        dnssec: "off"
+
+  - name: Enable / start PowerDNS
+    ansible.builtin.systemd:
+      name: "{{ item }}"
+      enabled: yes
+      state: restarted
+    with_items:
+      - pdns-recursor
+
+  - name: Make sure rsyslog file exists
+    ansible.builtin.file:
+      path: /etc/rsyslog.d/99-powerdns.conf
+      state: touch
+
+  - name: Copy over CoreDNS configuration file
+    blockinfile:
+      path: /etc/rsyslog.d/99-powerdns.conf
+      marker: "# {mark} ANSIBLE MANAGED BLOCK"
+      block: |
+        :syslogtag, startswith, "pdns" /var/log/pdns.log
+    notify:
+      - restart_rsyslog
+
+  handlers:
+  - name: restart_rsyslog
+    service:
+      name: rsyslog
+      state: restarted

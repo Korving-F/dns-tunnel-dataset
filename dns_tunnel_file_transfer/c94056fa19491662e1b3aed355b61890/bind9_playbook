@@ -1,0 +1,115 @@
+---
+
+- hosts: all
+  become: yes
+  tasks:
+  - name: Install packages needed for BIND9 Server
+    apt:
+      update_cache: yes
+      name:
+        - bind9
+        - bind9utils
+        - bind9-dnsutils
+        - bind9-doc
+        - bind9-host
+        - dnsutils
+      state: latest
+
+  - name: Enable bind9 service
+    ansible.builtin.systemd:
+      name: "{{ item }}"
+      enabled: yes
+    with_items:
+      - named
+  
+  - name: Remove default config file
+    ansible.builtin.file:
+      path: /etc/bind/named.conf
+      state: absent
+
+  - name: Re-add it
+    ansible.builtin.file:
+      path: /etc/bind/named.conf
+      state: touch
+      mode: 0640
+      owner: root
+      group: bind
+
+  - name: Copy over bind9 configuration file
+    blockinfile:
+      path: /etc/bind/named.conf
+      marker: "// {mark} ANSIBLE MANAGED BLOCK"
+      block: |
+        // Main options including querylog enabling
+        options {
+                directory "/var/cache/bind";
+                dnssec-validation no;
+
+                listen-on-v6 { any; };
+
+                recursion yes;
+                allow-recursion { any; };
+                allow-query { any; };
+                querylog yes;
+        };
+
+        // Forwarding zone for malicious DNS server
+        zone "example.attack" {
+            type forward;
+            forward only;
+            forwarders { 192.168.0.20; };
+        };
+
+        // BIND9 logging template
+        // https://webinar.defaultroutes.de/webinar/bind9-logging-template.html
+        // https://youtu.be/th7uyioH55Y
+        logging {
+                channel named           { file "named.log"        versions 10 size 20M; severity info;  print-time iso8601-utc; print-category yes; print-severity yes;};
+                channel security        { file "security.log"     versions 10 size 20M; severity info;  print-time iso8601-utc; print-severity yes; };
+                channel dnssec          { file "dnssec.log"       versions 10 size 20M; severity info;  print-time iso8601-utc; print-severity yes; };
+                channel resolver        { file "resolver.log"     versions 10 size 20M; severity info;  print-time iso8601-utc; print-severity yes; };
+                channel query_log       { file "query.log"        versions 10 size 80M; severity debug; print-time iso8601-utc; print-severity yes; };
+                channel query-error     { file "query-errors.log" versions 10 size 20M; severity info;  print-time iso8601-utc; print-severity yes; };
+                channel lame_servers    { file "lame-servers.log" versions 10 size 20M; severity info;  print-time iso8601-utc; print-severity yes; };
+                channel capacity        { file "capacity.log"     versions 10 size 20M; severity info;  print-time iso8601-utc; print-severity yes; };
+                channel rpz             { file "rpz.log"          versions 10 size 20M; severity info;  print-time iso8601-utc; print-severity yes; };
+
+                category default                { default_syslog;  named; };
+                category general                { default_syslog;  named; };
+                category security               { security; };
+                category queries                { query_log; };
+                category lame-servers           { lame_servers;};
+                category dnssec                 { dnssec; };
+                category edns-disabled          { default_syslog; };
+                category config                 { default_syslog; named; };
+                category resolver               { resolver; };
+                category edns-disabled          { resolver; };
+                category cname                  { resolver; };
+                category serve-stale            { resolver; };
+                category spill                  { capacity; };
+                category rate-limit             { capacity; };
+                category database               { capacity; };
+                category client                 { default_syslog; named; };
+                category network                { default_syslog; named; };
+                //category dnstap                       { dnstap;};
+                category unmatched              { named; };
+                category client                 { named; };
+                category network                { named; };
+                category delegation-only        { named;};
+                category dispatch               { named; };
+                category trust-anchor-telemetry { named; };
+                category rpz                    { rpz;};
+        };
+    notify:
+    - named_restart
+
+  - name: Check named config validity
+    command: named-checkconf
+    register: named_check
+    failed_when: named_check.rc != 0
+
+  handlers:
+    - name: named_restart
+      service:
+        name: named
+        state: restarted
