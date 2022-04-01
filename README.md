@@ -3,6 +3,18 @@
 [![License MIT](https://img.shields.io/badge/license-MIT-blue)](https://en.wikipedia.org/wiki/MIT_License)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Korving-F/daca)](https://github.com/Korving-F/DACA)
 
+## Table of Contents
+* [Introduction](#introduction)
+* [MITRE ATT&CK](#mitre-att&ck)
+* [Scenario](#scenario)
+* [Consume Datasets](#consume-datasets)
+* [Architecture](#architecture)
+* [Detection Rules](#detection-rules)
+* [Datasets](#datasets)
+    * [File transfer over DNS Tunnel](#file-transfer-over-dns-tunnel)
+    * [C2 over DNS Tunnel](#c2-over-dns-tunnel)  
+* [License](#license)  
+
 ## Introduction
 This repository documents a DNS tunneling scenario written in [DACA](https://github.com/Korving-F/DACA/) configuration language and the generated datasets it creates.
 Samples can be used for detection tuning or for educational purposes.
@@ -204,7 +216,36 @@ Collected data within this repository comes in a variety of formats:
 
 
 ### C2 over DNS Tunnel
-None
+#### DNS2TCP
+| DNS SERVER | AUTOMATION LEVEL | DNS RECORD TYPE | COMPRESSION | PASSPHRASE | LINK | DATA LINK | 
+| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
+| BIND9 | Fully Automated | KEY | NO | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/55db4c68c292a14ff92dd9f5fb712b01) | [Data files](dns_tunnel_c2/55db4c68c292a14ff92dd9f5fb712b01/55db4c68c292a14ff92dd9f5fb712b01_full_dataset.tar.gz) | 
+| BIND9 | Fully Automated | KEY | YES | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/833c16e0c082100518d4a3a200b822c2) | [Data files](dns_tunnel_c2/833c16e0c082100518d4a3a200b822c2/833c16e0c082100518d4a3a200b822c2_full_dataset.tar.gz) | 
+| BIND9 | Fully Automated | TXT | YES | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/6892133f5e90a52a915ffb0952ac621e) | [Data files](dns_tunnel_c2/6892133f5e90a52a915ffb0952ac621e/6892133f5e90a52a915ffb0952ac621e_full_dataset.tar.gz) | 
+| BIND9 | Fully Automated | TXT | NO | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/af88c701c4dea95b51e33748eafb76ab) | [Data files](dns_tunnel_c2/af88c701c4dea95b51e33748eafb76ab/af88c701c4dea95b51e33748eafb76ab_full_dataset.tar.gz) | 
+| COREDNS | Fully Automated | KEY | YES | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/7101f8927b5e169709bd69f0747f0f2d) | [Data files](dns_tunnel_c2/7101f8927b5e169709bd69f0747f0f2d/7101f8927b5e169709bd69f0747f0f2d_full_dataset.tar.gz) | 
+| COREDNS | Fully Automated | KEY | NO | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/10194c4889fb8a4d18459e1722ce6677) | [Data files](dns_tunnel_c2/10194c4889fb8a4d18459e1722ce6677/10194c4889fb8a4d18459e1722ce6677_full_dataset.tar.gz) | 
+| COREDNS | Fully Automated | TXT | YES | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/641dc9781fe4d6d65ca9b445c4d41d0f) | [Data files](dns_tunnel_c2/641dc9781fe4d6d65ca9b445c4d41d0f/641dc9781fe4d6d65ca9b445c4d41d0f_full_dataset.tar.gz) | 
+| COREDNS | Fully Automated | TXT | NO | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/e3f5b40c63031044c726c13e1a2b5938) | [Data files](dns_tunnel_c2/e3f5b40c63031044c726c13e1a2b5938/e3f5b40c63031044c726c13e1a2b5938_full_dataset.tar.gz) | 
+| DNSMASQ | Fully Automated | KEY | NO | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/ebd2d4ba4fe2b58b8c20ead9f524eeb7) | [Data files](dns_tunnel_c2/ebd2d4ba4fe2b58b8c20ead9f524eeb7/ebd2d4ba4fe2b58b8c20ead9f524eeb7_full_dataset.tar.gz) | 
+| DNSMASQ | Fully Automated | KEY | YES | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/5b083e43705fc4bc4b8bc20d8314ef7b) | [Data files](dns_tunnel_c2/5b083e43705fc4bc4b8bc20d8314ef7b/5b083e43705fc4bc4b8bc20d8314ef7b_full_dataset.tar.gz) | 
+| DNSMASQ | Fully Automated | TXT | NO | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/3ead8613795ed507cbb7164e0ff8a038) | [Data files](dns_tunnel_c2/3ead8613795ed507cbb7164e0ff8a038/3ead8613795ed507cbb7164e0ff8a038_full_dataset.tar.gz) | 
+| DNSMASQ | Fully Automated | TXT | YES | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/ae17f7537a1f1ab172bfe7ff97b12484) | [Data files](dns_tunnel_c2/ae17f7537a1f1ab172bfe7ff97b12484/ae17f7537a1f1ab172bfe7ff97b12484_full_dataset.tar.gz) | 
+| POWERDNS | Fully Automated | KEY | YES | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/b4ece1d179c73c8be619aeb8fed2d2f9) | [Data files](dns_tunnel_c2/b4ece1d179c73c8be619aeb8fed2d2f9/b4ece1d179c73c8be619aeb8fed2d2f9_full_dataset.tar.gz) | 
+| POWERDNS | Fully Automated | KEY | NO | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/8b6f3296c0e6a0374a2d9821db100327) | [Data files](dns_tunnel_c2/8b6f3296c0e6a0374a2d9821db100327/8b6f3296c0e6a0374a2d9821db100327_full_dataset.tar.gz) | 
+| POWERDNS | Fully Automated | TXT | NO | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/30699cb6ba13a1287b467a65960a6225) | [Data files](dns_tunnel_c2/30699cb6ba13a1287b467a65960a6225/30699cb6ba13a1287b467a65960a6225_full_dataset.tar.gz) | 
+| POWERDNS | Fully Automated | TXT | YES | 0xDEADBEEF | [Scenario files](dns_tunnel_c2/958858b9cbc9f45a3e20a5cd9b4c6b21) | [Data files](dns_tunnel_c2/958858b9cbc9f45a3e20a5cd9b4c6b21/958858b9cbc9f45a3e20a5cd9b4c6b21_full_dataset.tar.gz) | 
+
+
+#### DNSCAT
+| DNS SERVER | AUTOMATION LEVEL | DNS RECORD TYPE | LINK | DATA LINK | 
+| ------------- | ------------- | ------------- | ------------- | ------------- |
+| BIND9 | Partly Manual | TXT,CNAME,MX | [Scenario files](dns_tunnel_c2/8c2ef973a2d27a2c4581f347aa196b5b) | [Data files](dns_tunnel_c2/8c2ef973a2d27a2c4581f347aa196b5b/8c2ef973a2d27a2c4581f347aa196b5b_full_dataset.tar.gz) | 
+| COREDNS | Partly Manual | TXT,CNAME,MX | [Scenario files](dns_tunnel_c2/16985c987adf046c5af25fa918803186) | [Data files](dns_tunnel_c2/16985c987adf046c5af25fa918803186/16985c987adf046c5af25fa918803186_full_dataset.tar.gz) | 
+| DNSMASQ | Partly Manual | TXT,CNAME,MX | [Scenario files](dns_tunnel_c2/fc899f00ea4ff7d76f75598fcf67caf6) | [Data files](dns_tunnel_c2/fc899f00ea4ff7d76f75598fcf67caf6/fc899f00ea4ff7d76f75598fcf67caf6_full_dataset.tar.gz) | 
+| POWERDNS | Partly Manual | TXT,CNAME,MX | [Scenario files](dns_tunnel_c2/794768c79b2feb0114b2343a95594b24) | [Data files](dns_tunnel_c2/794768c79b2feb0114b2343a95594b24/794768c79b2feb0114b2343a95594b24_full_dataset.tar.gz) | 
+
+
 
 ## License
 > DACA is licensed under the [MIT](#) license.  

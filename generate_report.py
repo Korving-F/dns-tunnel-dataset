@@ -17,6 +17,18 @@ def readme(file_transfer, c2):
 [![License MIT](https://img.shields.io/badge/license-MIT-blue)](https://en.wikipedia.org/wiki/MIT_License)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Korving-F/daca)](https://github.com/Korving-F/DACA)
 
+## Table of Contents
+* [Introduction](#introduction)
+* [MITRE ATT&CK](#mitre-att&ck)
+* [Scenario](#scenario)
+* [Consume Datasets](#consume-datasets)
+* [Architecture](#architecture)
+* [Detection Rules](#detection-rules)
+* [Datasets](#datasets)
+    * [File transfer over DNS Tunnel](#file-transfer-over-dns-tunnel)
+    * [C2 over DNS Tunnel](#c2-over-dns-tunnel)  
+* [License](#license)  
+
 ## Introduction
 This repository documents a DNS tunneling scenario written in [DACA](https://github.com/Korving-F/DACA/) configuration language and the generated datasets it creates.
 Samples can be used for detection tuning or for educational purposes.
@@ -118,7 +130,62 @@ def gen_table(title, columns, rows):
 
 
 def gen_c2(path):
-    pass
+    files = Path(path).glob('*')
+    data_dirs = [i for i in files if i.is_dir() and i.name != 'scenario']
+
+    dnscat_cols  = ['DNS SERVER', 'AUTOMATION LEVEL', 'DNS RECORD TYPE', 'LINK', 'DATA LINK']
+    dnscat_rows  = []
+
+    dns2tcp_cols = ['DNS SERVER', 'AUTOMATION LEVEL', 'DNS RECORD TYPE', 'COMPRESSION', 'PASSPHRASE', 'LINK', 'DATA LINK']
+    dns2tcp_rows = []
+
+    for d in data_dirs:
+        row = {}
+        with open(f"{d}/.metadata", 'r') as f:
+            meta = f.read()
+        meta_loaded = yaml.safe_load(meta)
+
+        # Add link to directory
+        row['LINK'] = f"[Scenario files]({d})"
+        # Add link to data file
+        row['DATA LINK'] = f"[Data files]({d}/{d.name}_full_dataset.tar.gz)"
+        # Specify which DNS Server was used
+        for component in meta_loaded['scenario']['components']:
+            if "bind9" in component["name"].lower():
+                row['DNS SERVER'] = "BIND9"
+                break
+            elif "dnsmasq" in component["name"].lower():
+                row['DNS SERVER'] = "DNSMASQ"
+                break
+            elif "coredns" in component["name"].lower():
+                row['DNS SERVER'] = "COREDNS"
+                break
+            elif "powerdns" in component["name"].lower():
+                row['DNS SERVER'] = "POWERDNS"
+                break
+
+        for component in meta_loaded['scenario']['components']:               
+            if "dns2tcp" in component["name"]:
+                row['AUTOMATION LEVEL'] = "Fully Automated"
+                row['DNS RECORD TYPE']   = meta_loaded["variables"]["record_type"].upper()
+                row['COMPRESSION']       = "YES" if meta_loaded["variables"]["compression"] == "-c" else "NO"
+                row['PASSPHRASE']        = meta_loaded["variables"]["passphrase"]
+                dns2tcp_rows.append(row)
+                break
+                
+            if "dnscat" in component["name"]:
+                row['AUTOMATION LEVEL'] = "Partly Manual"
+                row['DNS RECORD TYPE'] = "TXT,CNAME,MX"
+                dnscat_rows.append(row)
+                break
+
+    dns2tcp_rows_sorted = sorted(dns2tcp_rows, key=lambda d: (d['DNS SERVER'], d['DNS RECORD TYPE']))
+    dnscat_rows_sorted  = sorted(dnscat_rows,  key=lambda d: (d['DNS SERVER'], d['DNS RECORD TYPE']))
+    
+    tables = []
+    tables.append(gen_table("DNS2TCP", dns2tcp_cols, dns2tcp_rows_sorted))
+    tables.append(gen_table("DNSCAT",  dnscat_cols,  dnscat_rows_sorted))
+    return "\n".join(tables)
 
 
 def gen_file_transfer(path):
