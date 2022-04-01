@@ -1,0 +1,72 @@
+---
+
+- name: Provision hosts with filebeat capabilities
+  hosts: all
+  become: yes
+  tasks:
+
+    - name: Install all galaxy roles
+      shell: ansible-galaxy install elastic.beats,v7.17.0 --roles-path="/etc/ansible/roles"
+
+    
+    # https://www.elastic.co/guide/en/beats/filebeat/8.0/elasticsearch-output.html
+    - name: Installing filebeat for collection
+      include_role: 
+        name: elastic.beats
+      vars:
+        beat: "filebeat"
+        beat_conf:
+          # Enable the following 4 items if a custom index will be used
+          #setup.template.enabled: true
+          #setup.template.name: "daca"
+          #setup.template.pattern: "daca-*"
+          #setup.ilm.enabled: false
+          filebeat.inputs:
+            - type: filestream
+              enabled: true
+              paths:
+                - "/var/cache/bind/query*.log"
+              fields:
+                filename: "query*.log"
+            
+            - type: filestream
+              enabled: true
+              paths:
+                - "/tmp/filebeat.json*"
+              fields:
+                filename: "filebeat.json*"
+            
+        output_conf:
+          elasticsearch:
+            hosts: ['192.168.1.248:9200']
+            protocol: "http"
+            #index: "%{[fields.filename]}-%{+yyyy.MM.dd}"
+            # Authentication credentials - either API key or username/password.
+            #api_key: "id:api_key"
+            #username: "elastic"
+            #password: "changeme"
+
+    
+    # https://www.elastic.co/guide/en/beats/filebeat/8.0/file-output.html
+    - name: Installing filebeat for collection
+      include_role: 
+        name: elastic.beats
+      vars:
+        beat: "filebeat"
+        beat_conf:
+          filebeat.inputs:
+            - type: filestream
+              enabled: true
+              paths:
+                - "/var/cache/bind/query*.log"
+              fields:
+                filename: "query*.log"
+            
+        output_conf:
+          file:
+            path: "/tmp"
+            filename: "filebeat.json"
+            # Too small rotation can cause data-loss
+            rotate_every_kb: 500000
+        use_repository: "true"
+    
