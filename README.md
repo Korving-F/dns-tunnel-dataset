@@ -42,10 +42,10 @@ Used DNS Tunneling software: [IODINE](https://github.com/yarrick/iodine) / [DNS2
 Used DNS Servers: [BIND 9](https://www.isc.org/bind/) / [CoreDNS](https://coredns.io/) / [Dnsmasq](https://thekelleys.org.uk/dnsmasq/doc.html) / [PowerDNS](https://www.powerdns.com/)
 
 ## Consume Datasets
-Collected data within this repository comes 
-* .log  - Flatfiles containing query logs as produced by the DNS Server. 
-* .json - Same flatfiles but then relayed by Filebeat. This allows for post-hoc ingestion into an elasticsearch cluster / [HELK](https://github.com/Cyb3rWard0g/HELK).
-* .cast - [asciinema](https://asciinema.org/) recordings of attacker's perspective. Replay by issueing: `asciinema play *.cast`.
+Collected data within this repository comes in a variety of formats:
+* .log  - Flatfiles containing query logs as produced by the DNS Server.
+* .json - Same flatfiles but then relayed by Filebeat. This allows for post-hoc ingestion into an elasticsearch cluster.
+* .cast - [asciinema](https://asciinema.org/) recordings of attacker's perspective. Replay by issuing: `asciinema play *.cast`.
 * .pcap - Standard packet capture looking at traffic on port 53.
 
 ## Architecture
