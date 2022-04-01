@@ -3,4 +3,4 @@
 *.json
 *.cast
 .finished
-
+__pycache__/
