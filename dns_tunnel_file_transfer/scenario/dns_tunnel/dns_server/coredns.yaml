@@ -1,0 +1,21 @@
+name: COREDNS
+description: |
+  Installation of CoreDNS server.
+image: ubuntu/focal64
+ipv4_address: 192.168.0.10
+setup:
+  type: ansible
+  val: coredns_playbook
+run:
+  type: shell
+  val: >-
+    sudo systemctl stop systemd-resolved;
+    sudo /opt/coredns/coredns -conf /opt/coredns/Corefile > /tmp/coredns.log 2>&1 & sleep 1;
+
+artifacts_to_collect:
+  - type: pcap
+    val: ["tcpdump -i any -s 0 -n -w /tmp/dns.pcap port 53"]
+  - type: files
+    val: ["/tmp/coredns.log", "/tmp/filebeat.json*", "/tmp/dns.pcap"]
+  - type: filebeat
+    val: ["/tmp/coredns.log"]

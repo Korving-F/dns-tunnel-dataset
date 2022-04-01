@@ -1,0 +1,21 @@
+name: BIND9
+description: |
+  Installation of BIND9 DNS server.
+image: ubuntu/focal64
+ipv4_address: 192.168.0.10
+setup:
+  type: ansible
+  val: bind9_playbook
+run:
+  type: shell
+  val: systemctl restart named
+
+artifacts_to_collect:
+  - type: pcap
+    val: ["tcpdump -i any -s 0 -n -w /tmp/dns.pcap port 53"]
+  - type: files
+    val: ["/var/cache/bind/query*.log", "/tmp/filebeat.json*", "/tmp/dns.pcap"]
+  - type: elastic
+    val: ["192.168.1.248:9200"]
+  - type: filebeat
+    val: ["/var/cache/bind/query*.log"]

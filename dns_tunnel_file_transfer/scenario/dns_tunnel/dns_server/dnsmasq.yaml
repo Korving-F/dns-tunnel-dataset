@@ -1,0 +1,21 @@
+name: DNSMASQ
+description: |
+  Installation of DNSMASQ DNS server.
+image: ubuntu/focal64
+ipv4_address: 192.168.0.10
+setup:
+  type: script
+  val: dnsmasq.bash
+run:
+  type: shell
+  val: >-
+    systemctl stop systemd-resolved;
+    systemctl restart dnsmasq;
+
+artifacts_to_collect:
+  - type: pcap
+    val: ["tcpdump -i any -n -t -w /tmp/dns.pcap port 53"]
+  - type: files
+    val: ["/var/log/dnsmasq.log", "/tmp/dns.pcap", "/tmp/filebeat.json*"]
+  - type: filebeat
+    val: ["/var/log/dnsmasq.log"]

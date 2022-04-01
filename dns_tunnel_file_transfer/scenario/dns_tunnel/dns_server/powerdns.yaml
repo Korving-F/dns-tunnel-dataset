@@ -1,0 +1,20 @@
+name: PowerDNS
+description: |
+  Installation of PowerDNS server.
+image: ubuntu/focal64
+ipv4_address: 192.168.0.10
+setup:
+  type: ansible
+  val: powerdns_playbook
+run:
+  type: shell
+  val: >-
+    sudo systemctl restart pdns-recursor;
+
+artifacts_to_collect:
+  - type: pcap
+    val: ["tcpdump -i any -s 0 -n -w /tmp/dns.pcap port 53"]
+  - type: files
+    val: ["/var/log/pdns.log", "/tmp/dns.pcap", "/tmp/filebeat.json*"]
+  - type: filebeat
+    val: ["/var/log/pdns.log"]
