@@ -5,7 +5,7 @@
 
 ## Table of Contents
 * [Introduction](#introduction)
-* [MITRE ATT&CK](#mitre-att&ck)
+* [MITRE ATT&CK](#mitre-attck)
 * [Scenario](#scenario)
 * [Consume Datasets](#consume-datasets)
 * [Architecture](#architecture)
