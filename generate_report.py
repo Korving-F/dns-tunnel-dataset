@@ -15,7 +15,7 @@ def readme(file_transfer, c2):
     README=f"""
 # DNS Tunneling Dataset
 [![License MIT](https://img.shields.io/badge/license-MIT-blue)](https://en.wikipedia.org/wiki/MIT_License)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/Korving-F/dns-tunnel-dataset)](https://github.com/Korving-F/DACA)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/Korving-F/dns-tunnel-dataset)](https://github.com/Korving-F/dns-tunnel-dataset)
 
 ## Table of Contents
 * [Introduction](#introduction)
