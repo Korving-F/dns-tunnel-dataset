@@ -9,7 +9,8 @@ dns_attack_server:
         val: dns2tcp_server_setup
     run:
         type: shell
-        val: |-
+        val: >-
+          sudo apt install -y socat;
           nohup asciinema rec /tmp/dns2tcp_server_{{ variables.record_type }}.cast -c \'set -x; dns2tcpd -d 1 -f /opt/dns2tcpdrc & sleep 1\'
     artifacts_to_collect:
       - type: files
