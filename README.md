@@ -194,8 +194,12 @@ Collected data within this repository comes in a variety of formats:
 
 
 #### DNSCAT
-| DNS SERVER | AUTOMATION LEVEL | LINK | DATA LINK | 
-| ------------- | ------------- | ------------- | ------------- |
+| DNS SERVER | AUTOMATION LEVEL | DNS RECORD TYPE | LINK | DATA LINK | 
+| ------------- | ------------- | ------------- | ------------- | ------------- |
+| BIND9 | Partly Manual | TXT,CNAME,MX | [Scenario files](dns_tunnel_file_transfer/8c2ef973a2d27a2c4581f347aa196b5b) | [Data files](dns_tunnel_file_transfer/8c2ef973a2d27a2c4581f347aa196b5b/8c2ef973a2d27a2c4581f347aa196b5b_full_dataset.tar.gz) | 
+| COREDNS | Partly Manual | TXT,CNAME,MX | [Scenario files](dns_tunnel_file_transfer/16985c987adf046c5af25fa918803186) | [Data files](dns_tunnel_file_transfer/16985c987adf046c5af25fa918803186/16985c987adf046c5af25fa918803186_full_dataset.tar.gz) | 
+| DNSMASQ | Partly Manual | TXT,CNAME,MX | [Scenario files](dns_tunnel_file_transfer/fc899f00ea4ff7d76f75598fcf67caf6) | [Data files](dns_tunnel_file_transfer/fc899f00ea4ff7d76f75598fcf67caf6/fc899f00ea4ff7d76f75598fcf67caf6_full_dataset.tar.gz) | 
+| POWERDNS | Partly Manual | TXT,CNAME,MX | [Scenario files](dns_tunnel_file_transfer/794768c79b2feb0114b2343a95594b24) | [Data files](dns_tunnel_file_transfer/794768c79b2feb0114b2343a95594b24/794768c79b2feb0114b2343a95594b24_full_dataset.tar.gz) | 
 
 
 

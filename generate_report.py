@@ -128,7 +128,7 @@ def gen_file_transfer(path):
     iodine_cols  = ['DNS SERVER', 'AUTOMATION LEVEL','DNS RECORD TYPE', 'ENCODING', 'PASSPHRASE', 'LINK', 'DATA LINK']
     iodine_rows  = []
 
-    dnscat_cols  = ['DNS SERVER', 'AUTOMATION LEVEL', 'LINK', 'DATA LINK']
+    dnscat_cols  = ['DNS SERVER', 'AUTOMATION LEVEL', 'DNS RECORD TYPE', 'LINK', 'DATA LINK']
     dnscat_rows  = []
 
     dns2tcp_cols = ['DNS SERVER', 'AUTOMATION LEVEL', 'DNS RECORD TYPE', 'COMPRESSION', 'PASSPHRASE', 'LINK', 'DATA LINK']
@@ -178,6 +178,7 @@ def gen_file_transfer(path):
                 
             if "dnscat" in component["name"]:
                 row['AUTOMATION LEVEL'] = "Partly Manual"
+                row['DNS RECORD TYPE'] = "TXT,CNAME,MX"
                 dnscat_rows.append(row)
                 break
 
