@@ -77,8 +77,6 @@ Collected data within this repository comes in a variety of formats:
 
 
 ## Detection Rules
-* [Sigma](detections/sigma/)
-* [SEC](detections/SEC/)
 * [Suricata](detections/suricata/)
 
 ## Datasets
