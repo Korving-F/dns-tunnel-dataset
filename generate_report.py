@@ -90,9 +90,6 @@ Collected data within this repository comes in a variety of formats:
 </br>  
 
 
-## Detection Rules
-* [Suricata](detections/suricata/)
-
 ## Datasets
 ### File transfer over DNS Tunnel
 {file_transfer}
