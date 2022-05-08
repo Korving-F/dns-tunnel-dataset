@@ -161,7 +161,7 @@ def gen_c2(path):
 
         for component in meta_loaded['scenario']['components']:               
             if "dns2tcp" in component["name"]:
-                row['AUTOMATION LEVEL'] = "Fully Automated"
+                row['AUTOMATION LEVEL'] = "Partly Manual"
                 row['DNS RECORD TYPE']   = meta_loaded["variables"]["record_type"].upper()
                 row['COMPRESSION']       = "YES" if meta_loaded["variables"]["compression"] == "-c" else "NO"
                 row['PASSPHRASE']        = meta_loaded["variables"]["passphrase"]
